@@ -1,5 +1,6 @@
 import gspread
 from google.oauth2.service_account import Credentials
+from pprint import pprint
 
 SCOPE = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -11,6 +12,7 @@ CREDS = Credentials.from_service_account_file('creds.json')
 SCOPED_CREDS = CREDS.with_scopes(SCOPE)
 GSPREAD_CLIENT = gspread.authorize(SCOPED_CREDS)
 SHEET = GSPREAD_CLIENT.open('love_sandwiches')
+
 
 def get_sales_data():
     """
@@ -28,8 +30,6 @@ def get_sales_data():
 
         sales_data = data_str.split(",")
         """ This will remove the comas from the string"""
-    
-
         if validate_data(sales_data):
             print("Data is valid!")
             break
@@ -54,6 +54,7 @@ def validate_data(values):
 
     return True
 
+
 def update_sales_worksheet(data):
     """
     Update sales worksheet, add new row with the list data provided.
@@ -64,9 +65,31 @@ def update_sales_worksheet(data):
     print("Sales worksheet updated succesfully.\n")
 
 
-data = get_sales_data()
+def calculate_surplus_data(sales_row):
+    """
+    Compare sales with stock and calculate the surplus for each item type.
 
-""" We must convert our values into integers, for this we write next code: """
-sales_data = [int(num) for num in data]
-""" We call the function and pass it our sales_data list"""
-update_sales_worksheet(sales_data)
+    The surplus is defined as the sales figure subtracted from the stock:
+    - Positive surplus indicates waste
+    - Negative surplus indicates extra made when stock was sold out.
+    """
+    print("Calculating surplus data...\n")
+    stock = SHEET.worksheet("stock").get_all_values()
+    stock_row = stock[-1]
+    print(stock_row)
+
+
+def main():
+    """
+    Run all program functions
+    """
+    data = get_sales_data()
+    '#We must convert our values into integers, for this we write next code'
+    sales_data = [int(num) for num in data]
+    '#We call the function and pass it our sales_data list'
+    update_sales_worksheet(sales_data)
+    calculate_surplus_data(sales_data)
+
+'#Now when we run a code below print statement will be before'
+print("Welcome to love sandwiches Data Automation!")
+main()
